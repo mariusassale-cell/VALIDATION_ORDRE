@@ -1,0 +1,1261 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ordres de Virement — SANLAMALLIANZ CI</title>
+<link rel="stylesheet" href="OutilDeVirement.css">
+</head>
+<body>
+
+<!-- ══ LOADING FIREBASE ══ -->
+<style>@keyframes fb-spin{to{transform:rotate(360deg)}}</style>
+<div id="fb-loading" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,.97);z-index:99999;flex-direction:column;align-items:center;justify-content:center;gap:18px;font-family:system-ui,sans-serif">
+  <div style="width:52px;height:52px;border:5px solid #e2e8f0;border-top-color:#1e3a8a;border-radius:50%;animation:fb-spin .85s linear infinite"></div>
+  <div style="font-size:16px;color:#1e3a8a;font-weight:700;letter-spacing:.3px">Connexion Firebase…</div>
+  <div style="font-size:12px;color:#64748b">Synchronisation des données en cours</div>
+</div>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-image-zone">
+        <img id="app-logo-img" src="" alt="Logo" style="display:none">
+        <div id="app-logo-text" class="logo-text-fallback">
+          <div class="logo-icon-box">💳</div>
+          <div>
+            <div class="logo-name" id="sidebar-company-name">SANLAMALLIANZ CI</div>
+          </div>
+        </div>
+      </div>
+      <div class="subtitle">Ordres de Virement</div>
+    </div>
+    <div id="session-bar" class="session-bar" style="display:none">
+      <div class="s-name" id="session-nom">—</div>
+      <div class="s-level" id="session-niveau">—</div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section">Virements</div>
+      <div class="nav-item active" onclick="showPanel('facture')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Facture
+      </div>
+      <div class="nav-item" onclick="showPanel('bancassurance')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+        Bancassurance
+      </div>
+      <div class="nav-item" onclick="showPanel('nivellement')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+        Nivellement
+      </div>
+      <div class="nav-item" onclick="showPanel('reassurance')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Réassurance
+      </div>
+      <div class="nav-item" onclick="showPanel('sinistre')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Sinistre
+      </div>
+      <div class="nav-section" style="margin-top:10px">Administration</div>
+      <div class="nav-item" id="nav-inbox" style="display:none" onclick="showPanel('inbox')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+        Boîte de réception
+        <span class="nav-pill" id="inbox-badge" style="display:none;background:#ef4444">0</span>
+      </div>
+      <div class="nav-item" id="nav-historique" onclick="showPanel('historique')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+        Historique
+        <span class="nav-pill" id="hist-count">0</span>
+      </div>
+      <div class="nav-item" id="nav-parametres" style="display:none" onclick="showPanel('parametres')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 0-14.14 0"/><path d="M4.93 19.07a10 10 0 0 0 14.14 0"/><path d="M1.5 12h3M19.5 12h3M12 1.5v3M12 19.5v3"/></svg>
+        Paramètres
+      </div>
+      <div class="nav-item" id="nav-utilisateurs" style="display:none" onclick="showPanel('utilisateurs')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Utilisateurs
+      </div>
+      <div class="nav-item" id="nav-signature" style="display:none" onclick="openSignatureModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 19.5v.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8.5L18 5.5"/><path d="M15 2v4h4"/><path d="M8 18s1-1 2-1 2 1 3 1 2-1 2-1"/></svg>
+        Ma Signature
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <a onclick="exportParams()">⬇ Exporter paramètres</a>
+      <a onclick="document.getElementById('importFile').click()">⬆ Importer paramètres</a>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importParams(event)">
+      <a class="logout-link" onclick="logout()">⏻ Déconnexion</a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- ══════════ FACTURE ══════════ -->
+    <div id="panel-facture" class="panel active">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Ordre de Virement — Facture</h1>
+          <p>Règlement de factures fournisseurs</p>
+        </div>
+        <span class="page-header-badge">Facture</span>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <h2>Informations du virement</h2>
+          <span class="badge">Facture</span>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+
+            <!-- ── 1. ENTÊTE ── -->
+            <div class="section-divider">1. Entête du courrier</div>
+            <div class="field">
+              <label>Date <span class="req">*</span></label>
+              <input type="text" id="fac_date" placeholder="ex: 12 mai 2025">
+            </div>
+            <div class="field">
+              <label>N/Réf <span class="req">*</span></label>
+              <input type="text" id="fac_ref" placeholder="ex: 2025/FIN/001">
+            </div>
+
+            <!-- ── 2. DÉBITEUR ── -->
+            <div class="section-divider">2. Débiteur — Nos coordonnées bancaires</div>
+            <div class="field">
+              <label>Notre banque <span class="req">*</span></label>
+              <select id="fac_banque" onchange="autoFillBanque('fac','fac_banque','compte_debit',null,null)">
+                <option value="">— Sélectionner —</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>À l'attention de M.</label>
+              <input type="text" id="fac_attention" placeholder="Nom du responsable (auto-rempli)">
+            </div>
+            <div class="field span2">
+              <label>Compte à débiter N°</label>
+              <input type="text" id="fac_compte_debit" placeholder="Auto-rempli selon la banque sélectionnée">
+            </div>
+
+            <!-- ── 3. BÉNÉFICIAIRE & SA BANQUE ── -->
+            <div class="section-divider">3. Bénéficiaire &amp; sa banque</div>
+            <div class="field span2">
+              <label>Bénéficiaire <span class="req">*</span></label>
+              <select id="fac_beneficiaire_sel" onchange="autoFillBeneficiaire('fac')">
+                <option value="">— Sélectionner un bénéficiaire —</option>
+                <option value="__autre__">✏️ Saisie manuelle</option>
+              </select>
+            </div>
+            <div id="fac_ben_manuel" class="field span2" style="display:none">
+              <label>Nom du bénéficiaire (saisie manuelle)</label>
+              <input type="text" id="fac_beneficiaire" placeholder="Nom complet du bénéficiaire">
+            </div>
+            <div class="field">
+              <label>Devise <span class="req">*</span></label>
+              <select id="fac_devise" onchange="montantToLettre('fac_montant','fac_montant_lettre','fac_devise')">
+                <option value="">— Devise —</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Montant <span class="req">*</span></label>
+              <input type="text" id="fac_montant" placeholder="ex: 1 500 000" oninput="montantToLettre('fac_montant','fac_montant_lettre','fac_devise')">
+            </div>
+            <div class="field span2">
+              <label>Montant en lettres</label>
+              <input type="text" id="fac_montant_lettre" placeholder="Auto-rempli à la saisie du montant">
+            </div>
+            <div class="field span2">
+              <label>Banque du bénéficiaire (auto-rempli)</label>
+              <input type="text" id="fac_banque_ben_nom" class="autofill" readonly placeholder="Auto-rempli selon le bénéficiaire sélectionné">
+            </div>
+            <div class="field">
+              <label>IBAN / N° de compte (auto-rempli)</label>
+              <input type="text" id="fac_iban" placeholder="Auto-rempli" class="autofill" readonly>
+            </div>
+            <div class="field">
+              <label>Code Swift (auto-rempli)</label>
+              <input type="text" id="fac_swift" placeholder="Auto-rempli" class="autofill" readonly>
+            </div>
+
+            <!-- ── 4. RÉFÉRENCE DE LA FACTURE ── -->
+            <div class="section-divider">4. Référence de la facture</div>
+            <div class="field">
+              <label>Motif</label>
+              <input type="text" id="fac_motif" placeholder="ex: FGFG/2025-INV-001">
+            </div>
+            <div class="field">
+              <label>N° Facture</label>
+              <input type="text" id="fac_ref_facture" placeholder="ex: INV-2025-042">
+            </div>
+            <div class="field span2">
+              <label>Prise en charge des frais</label>
+              <select id="fac_frais">
+                <option value="notre_charge">Tous les frais à notre charge</option>
+                <option value="partage">Frais partagés entre le bénéficiaire et nous</option>
+                <option value="beneficiaire_charge">Tous les frais à la charge du bénéficiaire</option>
+              </select>
+            </div>
+
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold btn-direct-gen" onclick="genWord('facture')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Générer le fichier Word
+          </button>
+          <button class="btn btn-outline btn-direct-gen" onclick="printForm('facture')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Imprimer / PDF
+          </button>
+          <button class="btn btn-gold btn-soumettre" style="display:none" onclick="submitOrder('facture')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Soumettre à validation
+          </button>
+          <button class="btn btn-outline" onclick="togglePreview('facture')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Aperçu texte
+          </button>
+          <button class="btn btn-danger" onclick="clearForm('facture')">Effacer</button>
+        </div>
+        <pre class="preview-area" id="preview-facture"></pre>
+      </div>
+    </div>
+
+    <!-- ══════════ BANCASSURANCE ══════════ -->
+    <div id="panel-bancassurance" class="panel">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Ordre de Virement — Bancassurance</h1>
+          <p>Règlement de commissions de bancassurance</p>
+        </div>
+        <span class="page-header-badge">Bancassurance</span>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+          <h2>Informations du virement</h2>
+          <span class="badge">Bancassurance</span>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="section-divider">Entête du document</div>
+            <div class="field">
+              <label>Date <span class="req">*</span></label>
+              <input type="text" id="ban_date" placeholder="ex: 12 mai 2025">
+            </div>
+            <div class="field">
+              <label>N/Réf <span class="req">*</span></label>
+              <input type="text" id="ban_ref" placeholder="ex: 2025/BC/001">
+            </div>
+            <div class="field">
+              <label>N° Ordre de virement</label>
+              <input type="text" id="ban_ordre" placeholder="ex: OV-2025-015">
+            </div>
+            <div class="field">
+              <label>À l'attention de M.</label>
+              <input type="text" id="ban_attention" placeholder="Nom du responsable">
+            </div>
+
+            <div class="section-divider">Compte & Commission</div>
+            <div class="field">
+              <label>Banque <span class="req">*</span></label>
+              <select id="ban_banque" onchange="autoFillBanque('ban','ban_banque','compte_ref',null,null)">
+                <option value="">— Sélectionner —</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Compte cité en référence</label>
+              <input type="text" id="ban_compte_ref" placeholder="Auto-rempli ou saisir">
+            </div>
+            <div class="field">
+              <label>Type de commissions</label>
+              <input type="text" id="ban_type_commission" placeholder="ex: courtage, production">
+            </div>
+            <div class="field">
+              <label>N° Commission</label>
+              <input type="text" id="ban_num_commission" placeholder="ex: COM-2025-001">
+            </div>
+
+            <div class="section-divider">Montant & Bénéficiaire</div>
+            <div class="field">
+              <label>Montant (FCFA) <span class="req">*</span></label>
+              <input type="text" id="ban_montant" placeholder="ex: 850 000" oninput="montantToLettre('ban_montant','ban_montant_lettre')">
+            </div>
+            <div class="field">
+              <label>Montant en lettres</label>
+              <input type="text" id="ban_montant_lettre" placeholder="Auto-rempli à la saisie du montant">
+            </div>
+            <div class="field span2">
+              <label>En faveur de <span class="req">*</span></label>
+              <select id="ban_beneficiaire_sel" onchange="autoFillBeneficiaire('ban')">
+                <option value="">— Sélectionner un bénéficiaire —</option>
+                <option value="__autre__">✏️ Saisie manuelle</option>
+              </select>
+            </div>
+            <div id="ban_ben_manuel" class="field span2" style="display:none">
+              <label>Nom du bénéficiaire (saisie manuelle)</label>
+              <input type="text" id="ban_beneficiaire" placeholder="Nom du bénéficiaire">
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold btn-direct-gen" onclick="genWord('bancassurance')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Générer le fichier Word
+          </button>
+          <button class="btn btn-outline btn-direct-gen" onclick="printForm('bancassurance')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Imprimer / PDF
+          </button>
+          <button class="btn btn-gold btn-soumettre" style="display:none" onclick="submitOrder('bancassurance')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Soumettre à validation
+          </button>
+          <button class="btn btn-outline" onclick="togglePreview('bancassurance')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Aperçu texte
+          </button>
+          <button class="btn btn-danger" onclick="clearForm('bancassurance')">Effacer</button>
+        </div>
+        <pre class="preview-area" id="preview-bancassurance"></pre>
+      </div>
+    </div>
+
+    <!-- ══════════ NIVELLEMENT ══════════ -->
+    <div id="panel-nivellement" class="panel">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Ordre de Virement — Nivellement</h1>
+          <p>Virement de nivellement de compte</p>
+        </div>
+        <span class="page-header-badge">Nivellement</span>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></div>
+          <h2>Informations du virement</h2>
+          <span class="badge">Nivellement</span>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="section-divider">Entête du document</div>
+            <div class="field">
+              <label>Date <span class="req">*</span></label>
+              <input type="text" id="niv_date" placeholder="ex: 12 mai 2025">
+            </div>
+            <div class="field">
+              <label>N/Réf <span class="req">*</span></label>
+              <input type="text" id="niv_ref" placeholder="ex: 2025/NIV/001">
+            </div>
+
+            <div class="section-divider">Banque destinataire</div>
+            <div class="field">
+              <label>Banque <span class="req">*</span></label>
+              <select id="niv_banque" onchange="autoFillBanque('niv','niv_banque','compte_debit',null,null)">
+                <option value="">— Sélectionner —</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>À l'attention de M.</label>
+              <input type="text" id="niv_attention" placeholder="Nom du responsable">
+            </div>
+            <div class="field">
+              <label>Compte à débiter N°</label>
+              <input type="text" id="niv_compte_debit" placeholder="Auto-rempli ou saisir">
+            </div>
+            <div class="field">
+              <label>RIB</label>
+              <input type="text" id="niv_rib" placeholder="ex: 01 01000 00000000001 00">
+            </div>
+
+            <div class="section-divider">Montant</div>
+            <div class="field">
+              <label>Montant <span class="req">*</span></label>
+              <input type="text" id="niv_montant" placeholder="ex: 5 000 000" oninput="montantToLettre('niv_montant','niv_montant_lettre')">
+            </div>
+            <div class="field">
+              <label>Montant en lettres</label>
+              <input type="text" id="niv_montant_lettre" placeholder="Auto-rempli à la saisie du montant">
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold btn-direct-gen" onclick="genWord('nivellement')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Générer le fichier Word
+          </button>
+          <button class="btn btn-outline btn-direct-gen" onclick="printForm('nivellement')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Imprimer / PDF
+          </button>
+          <button class="btn btn-gold btn-soumettre" style="display:none" onclick="submitOrder('nivellement')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Soumettre à validation
+          </button>
+          <button class="btn btn-outline" onclick="togglePreview('nivellement')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Aperçu texte
+          </button>
+          <button class="btn btn-danger" onclick="clearForm('nivellement')">Effacer</button>
+        </div>
+        <pre class="preview-area" id="preview-nivellement"></pre>
+      </div>
+    </div>
+
+    <!-- ══════════ RÉASSURANCE ══════════ -->
+    <div id="panel-reassurance" class="panel">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Ordre de Virement — Réassurance</h1>
+          <p>Règlement de primes de réassurance</p>
+        </div>
+        <span class="page-header-badge">Réassurance</span>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <h2>Informations du virement</h2>
+          <span class="badge">Réassurance</span>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="section-divider">Entête du document</div>
+            <div class="field">
+              <label>Date <span class="req">*</span></label>
+              <input type="text" id="rea_date" placeholder="ex: 12 mai 2025">
+            </div>
+            <div class="field">
+              <label>N/Réf <span class="req">*</span></label>
+              <input type="text" id="rea_ref" placeholder="ex: 2025/REA/001">
+            </div>
+
+            <div class="section-divider">Banque émettrice</div>
+            <div class="field">
+              <label>Banque <span class="req">*</span></label>
+              <select id="rea_banque" onchange="autoFillBanque('rea','rea_banque','compte_debit',null,null)">
+                <option value="">— Sélectionner —</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>À l'attention de M.</label>
+              <input type="text" id="rea_attention" placeholder="Nom du responsable">
+            </div>
+            <div class="field span2">
+              <label>Compte à débiter</label>
+              <input type="text" id="rea_compte_debit" placeholder="Auto-rempli ou saisir">
+            </div>
+
+            <div class="section-divider">Bénéficiaire (Réassureur)</div>
+            <div class="field span2">
+              <label>Bénéficiaire <span class="req">*</span></label>
+              <select id="rea_beneficiaire_sel" onchange="autoFillBeneficiaire('rea')">
+                <option value="">— Sélectionner un bénéficiaire —</option>
+                <option value="__autre__">✏️ Saisie manuelle</option>
+              </select>
+            </div>
+            <div id="rea_ben_manuel" class="field span2" style="display:none">
+              <label>Nom du réassureur (saisie manuelle)</label>
+              <input type="text" id="rea_beneficiaire" placeholder="Nom du réassureur">
+            </div>
+            <div class="field">
+              <label>Devise <span class="req">*</span></label>
+              <select id="rea_devise" onchange="montantToLettre('rea_montant','rea_montant_lettre','rea_devise')">
+                <option value="">— Devise —</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Montant <span class="req">*</span></label>
+              <input type="text" id="rea_montant" placeholder="ex: 25 000" oninput="montantToLettre('rea_montant','rea_montant_lettre','rea_devise')">
+            </div>
+            <div class="field">
+              <label>Montant en lettres</label>
+              <input type="text" id="rea_montant_lettre" placeholder="Auto-rempli à la saisie du montant">
+            </div>
+            <div class="field span2">
+              <label>Banque du bénéficiaire (auto-rempli)</label>
+              <input type="text" id="rea_banque_ben_nom" class="autofill" readonly placeholder="Auto-rempli selon le bénéficiaire sélectionné">
+            </div>
+            <div class="field">
+              <label>IBAN (auto-rempli)</label>
+              <input type="text" id="rea_iban" placeholder="Auto-rempli" class="autofill" readonly>
+            </div>
+            <div class="field">
+              <label>Swift Code (auto-rempli)</label>
+              <input type="text" id="rea_swift" placeholder="Auto-rempli" class="autofill" readonly>
+            </div>
+
+            <div class="section-divider">Références</div>
+            <div class="field">
+              <label>Motif / Traité</label>
+              <input type="text" id="rea_motif" placeholder="ex: PFAC / Traité 2025">
+            </div>
+            <div class="field">
+              <label>N° Police</label>
+              <input type="text" id="rea_police" placeholder="ex: POL-2025-0042">
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold btn-direct-gen" onclick="genWord('reassurance')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Générer le fichier Word
+          </button>
+          <button class="btn btn-outline btn-direct-gen" onclick="printForm('reassurance')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Imprimer / PDF
+          </button>
+          <button class="btn btn-gold btn-soumettre" style="display:none" onclick="submitOrder('reassurance')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Soumettre à validation
+          </button>
+          <button class="btn btn-outline" onclick="togglePreview('reassurance')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Aperçu texte
+          </button>
+          <button class="btn btn-danger" onclick="clearForm('reassurance')">Effacer</button>
+        </div>
+        <pre class="preview-area" id="preview-reassurance"></pre>
+      </div>
+    </div>
+
+    <!-- ══════════ SINISTRE ══════════ -->
+    <div id="panel-sinistre" class="panel">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Ordre de Virement — Sinistre</h1>
+          <p>Règlement de sinistres assurés</p>
+        </div>
+        <span class="page-header-badge">Sinistre</span>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+          <h2>Informations du virement</h2>
+          <span class="badge">Sinistre</span>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="section-divider">Entête du document</div>
+            <div class="field">
+              <label>Date <span class="req">*</span></label>
+              <input type="text" id="sin_date" placeholder="ex: 12 mai 2025">
+            </div>
+            <div class="field">
+              <label>N/Réf <span class="req">*</span></label>
+              <input type="text" id="sin_ref" placeholder="ex: 2025/SIN/001">
+            </div>
+
+            <div class="section-divider">Banque destinataire</div>
+            <div class="field">
+              <label>Banque <span class="req">*</span></label>
+              <select id="sin_banque" onchange="autoFillBanque('sin','sin_banque','compte_debit',null,null)">
+                <option value="">— Sélectionner —</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>À l'attention de M.</label>
+              <input type="text" id="sin_attention" placeholder="Nom du responsable">
+            </div>
+            <div class="field">
+              <label>Compte à débiter N°</label>
+              <input type="text" id="sin_compte_debit" placeholder="Auto-rempli ou saisir">
+            </div>
+
+            <div class="section-divider">Bénéficiaire</div>
+            <div class="field span2">
+              <label>Bénéficiaire <span class="req">*</span></label>
+              <select id="sin_beneficiaire_sel" onchange="autoFillBeneficiaire('sin')">
+                <option value="">— Sélectionner un bénéficiaire —</option>
+                <option value="__autre__">✏️ Saisie manuelle</option>
+              </select>
+            </div>
+            <div id="sin_ben_manuel" class="field span2" style="display:none">
+              <label>Nom du bénéficiaire (saisie manuelle)</label>
+              <input type="text" id="sin_beneficiaire" placeholder="Nom de l'assuré ou ayant droit">
+            </div>
+            <div class="field">
+              <label>Devise <span class="req">*</span></label>
+              <select id="sin_devise" onchange="montantToLettre('sin_montant','sin_montant_lettre','sin_devise')">
+                <option value="">— Devise —</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Montant <span class="req">*</span></label>
+              <input type="text" id="sin_montant" placeholder="ex: 3 200 000" oninput="montantToLettre('sin_montant','sin_montant_lettre','sin_devise')">
+            </div>
+            <div class="field">
+              <label>Montant en lettres</label>
+              <input type="text" id="sin_montant_lettre" placeholder="Auto-rempli à la saisie du montant">
+            </div>
+            <div class="field span2">
+              <label>Banque du bénéficiaire (auto-rempli)</label>
+              <input type="text" id="sin_banque_ben_nom" class="autofill" readonly placeholder="Auto-rempli selon le bénéficiaire sélectionné">
+            </div>
+            <div class="field">
+              <label>IBAN (auto-rempli)</label>
+              <input type="text" id="sin_iban" placeholder="Auto-rempli" class="autofill" readonly>
+            </div>
+            <div class="field">
+              <label>Swift Code (auto-rempli)</label>
+              <input type="text" id="sin_swift" placeholder="Auto-rempli" class="autofill" readonly>
+            </div>
+
+            <div class="section-divider">Référence Sinistre</div>
+            <div class="field span2">
+              <label>N° Police sinistre <span class="req">*</span></label>
+              <input type="text" id="sin_police" placeholder="ex: POL-SIN-2025-007">
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold btn-direct-gen" onclick="genWord('sinistre')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Générer le fichier Word
+          </button>
+          <button class="btn btn-outline btn-direct-gen" onclick="printForm('sinistre')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Imprimer / PDF
+          </button>
+          <button class="btn btn-gold btn-soumettre" style="display:none" onclick="submitOrder('sinistre')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Soumettre à validation
+          </button>
+          <button class="btn btn-outline" onclick="togglePreview('sinistre')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Aperçu texte
+          </button>
+          <button class="btn btn-danger" onclick="clearForm('sinistre')">Effacer</button>
+        </div>
+        <pre class="preview-area" id="preview-sinistre"></pre>
+      </div>
+    </div>
+
+    <!-- ══════════ BOÎTE DE RÉCEPTION ══════════ -->
+    <div id="panel-inbox" class="panel">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Boîte de réception</h1>
+          <p>Suivi et validation des ordres de virement</p>
+        </div>
+        <span class="page-header-badge" id="inbox-badge-text">—</span>
+      </div>
+      <div id="inbox-content">
+        <!-- Rendu dynamique par renderInbox() -->
+      </div>
+    </div>
+
+    <!-- ══════════ HISTORIQUE ══════════ -->
+    <div id="panel-historique" class="panel">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Historique des virements</h1>
+          <p>Base de données de tous les ordres générés</p>
+        </div>
+        <span class="page-header-badge">Historique</span>
+      </div>
+
+      <!-- Statistiques -->
+      <div class="hist-stats" id="hist-stats"></div>
+
+      <!-- Tableau -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+          </div>
+          <h2>Registre des virements</h2>
+          <span class="badge" id="hist-total-badge">0 entrée(s)</span>
+        </div>
+        <div class="hist-toolbar">
+          <input type="text" id="hist-search" placeholder="🔍 Rechercher bénéficiaire, référence, banque..." oninput="renderHistorique()">
+          <select id="hist-filter-type" onchange="renderHistorique()" style="padding:8px 12px;border:1.5px solid var(--blue-border);border-radius:8px;font-size:13px;font-family:inherit;">
+            <option value="">Tous les types</option>
+            <option value="facture">Facture</option>
+            <option value="bancassurance">Bancassurance</option>
+            <option value="nivellement">Nivellement</option>
+            <option value="reassurance">Réassurance</option>
+            <option value="sinistre">Sinistre</option>
+          </select>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="hist-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Date génération</th>
+                <th>Type</th>
+                <th>Date virement</th>
+                <th>N/Réf</th>
+                <th>Bénéficiaire</th>
+                <th>Banque débitrice</th>
+                <th>Banque bénéficiaire</th>
+                <th>Devise</th>
+                <th>Montant</th>
+                <th>IBAN</th>
+                <th>Swift</th>
+                <th>Motif</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="hist-tbody"></tbody>
+          </table>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" onclick="exportExcel()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+            Exporter en Excel (.xlsx)
+          </button>
+          <button class="btn btn-outline" onclick="if(confirm('Effacer tout l\'historique ?')){historique=[];saveHistorique();renderHistorique();}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            Vider l'historique
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ PARAMÈTRES ══════════ -->
+    <div id="panel-parametres" class="panel">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Paramètres</h1>
+          <p>Configurez les banques et leurs comptes associés</p>
+        </div>
+        <span class="page-header-badge">Configuration</span>
+      </div>
+
+      <!-- Banques débitrices (notre compte) -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+          <h2>Banques débitrices — Nos comptes</h2>
+          <span class="badge" id="banques-count">0 banque(s)</span>
+        </div>
+        <div style="padding:10px 22px 4px;font-size:12px;color:var(--blue-mid);background:var(--blue-xlight);border-bottom:1px solid var(--blue-border);">
+          ℹ️ Ces banques apparaissent dans la liste déroulante <strong>Banque destinataire</strong> de chaque formulaire (compte à débiter).
+        </div>
+        <div class="card-body" style="padding:0">
+          <table class="param-table" id="banques-table">
+            <thead>
+              <tr>
+                <th>Nom de la banque</th>
+                <th>N° Compte (débit)</th>
+                <th>IBAN</th>
+                <th>Swift Code</th>
+                <th>RIB</th>
+                <th>Contact (M.)</th>
+                <th style="width:50px"></th>
+              </tr>
+            </thead>
+            <tbody id="banques-tbody"></tbody>
+          </table>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" onclick="addBanque()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter une banque débitrice
+          </button>
+          <button class="btn btn-outline" onclick="saveParams()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Sauvegarder
+          </button>
+        </div>
+      </div>
+
+      <!-- Banques bénéficiaires -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <h2>Banques bénéficiaires — IBAN & Swift</h2>
+          <span class="badge" id="banques-ben-count">0 banque(s)</span>
+        </div>
+        <div style="padding:10px 22px 4px;font-size:12px;color:var(--blue-mid);background:var(--blue-xlight);border-bottom:1px solid var(--blue-border);">
+          ℹ️ Ces banques apparaissent dans la liste déroulante <strong>Banque du bénéficiaire</strong> (IBAN et Swift auto-remplis).
+        </div>
+        <div class="card-body" style="padding:0">
+          <table class="param-table" id="banques-ben-table">
+            <thead>
+              <tr>
+                <th>Nom de la banque</th>
+                <th>IBAN</th>
+                <th>Swift Code</th>
+                <th style="width:50px"></th>
+              </tr>
+            </thead>
+            <tbody id="banques-ben-tbody"></tbody>
+          </table>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" onclick="addBanqueBen()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter une banque bénéficiaire
+          </button>
+          <button class="btn btn-outline" onclick="saveParams()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Sauvegarder
+          </button>
+        </div>
+      </div>
+
+      <!-- Bénéficiaires -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <h2>Bénéficiaires — Carnet d'adresses</h2>
+          <span class="badge" id="beneficiaires-count">0 bénéficiaire(s)</span>
+        </div>
+        <div style="padding:10px 22px 4px;font-size:12px;color:var(--blue-mid);background:var(--blue-xlight);border-bottom:1px solid var(--blue-border);">
+          ℹ️ Ces bénéficiaires apparaissent dans les listes déroulantes de chaque formulaire (banque, IBAN et Swift auto-remplis).
+        </div>
+        <div class="card-body" style="padding:0">
+          <table class="param-table" id="beneficiaires-table">
+            <thead>
+              <tr>
+                <th>Nom du bénéficiaire</th>
+                <th>Banque</th>
+                <th>IBAN / N° de compte</th>
+                <th>Code Swift</th>
+                <th style="width:50px"></th>
+              </tr>
+            </thead>
+            <tbody id="beneficiaires-tbody"></tbody>
+          </table>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" onclick="addBeneficiaire()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter un bénéficiaire
+          </button>
+          <button class="btn btn-outline" onclick="saveBeneficiaires()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Sauvegarder les bénéficiaires
+          </button>
+        </div>
+      </div>
+
+      <!-- Devises -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+          <h2>Devises disponibles</h2>
+          <span class="badge" id="devises-count">0 devise(s)</span>
+        </div>
+        <div style="padding:10px 22px 4px;font-size:12px;color:var(--blue-mid);background:var(--blue-xlight);border-bottom:1px solid var(--blue-border);">
+          ℹ️ Ces devises apparaissent dans les listes déroulantes Devise de chaque formulaire.
+        </div>
+        <div class="card-body">
+          <div id="devises-list" style="max-width:360px"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" onclick="addDevise()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter une devise
+          </button>
+          <button class="btn btn-outline" onclick="saveDevises(); refreshDeviseSelects(); showToast('Devises sauvegardées','success')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Sauvegarder les devises
+          </button>
+        </div>
+      </div>
+
+      <!-- En-tête & Pied de page des ordres -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v4H4z"/><path d="M4 16h16v4H4z"/><path d="M4 10h16"/></svg></div>
+          <h2>En-tête &amp; Pied de page des ordres</h2>
+        </div>
+        <div class="card-body">
+          <p style="font-size:12px;color:var(--text-light);margin:0 0 14px">Laissez vide pour utiliser l'en-tête standard (nom société, adresse, téléphone). Si renseigné, le texte personnalisé remplacera l'en-tête standard sur tous les ordres imprimés et Word.</p>
+          <div class="form-grid">
+            <div class="field span2">
+              <label>En-tête personnalisée</label>
+              <textarea id="param_entete_ordre" rows="4" placeholder="Ex : SANLAMALLIANZ CI ASSURANCES&#10;Abidjan Plateau, Côte d'Ivoire&#10;Tél. : +225 XX XX XX XX XX"
+                style="width:100%;padding:10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical"></textarea>
+              <div style="font-size:11px;color:var(--text-light);margin-top:4px">Chaque ligne sera rendue séparément. HTML non supporté.</div>
+            </div>
+            <div class="field span2">
+              <label>Pied de page</label>
+              <textarea id="param_pied_ordre" rows="3" placeholder="Ex : Document confidentiel — Usage interne uniquement&#10;SANLAMALLIANZ CI ASSURANCES — RC N° 123456"
+                style="width:100%;padding:10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical"></textarea>
+              <div style="font-size:11px;color:var(--text-light);margin-top:4px">Apparaît en bas de chaque ordre, séparé par une ligne.</div>
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" onclick="saveParams();showToast('En-tête et pied de page sauvegardés','success')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Sauvegarder
+          </button>
+          <button class="btn btn-outline" onclick="document.getElementById('param_entete_ordre').value='';document.getElementById('param_pied_ordre').value='';saveParams();showToast('En-tête et pied réinitialisés','success')">Réinitialiser</button>
+        </div>
+      </div>
+
+      <!-- Personnalisation -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></div>
+          <h2>Personnalisation — Logo &amp; Fond d'écran</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <!-- LOGO -->
+            <div class="field span2">
+              <label>Logo de la société</label>
+              <div class="logo-preview-zone">
+                <img id="param-logo-preview" src="" alt="Logo" style="display:none">
+                <div id="param-logo-placeholder" style="width:180px;height:54px;background:#f0f5ff;border:1.5px dashed #c7d9f8;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px">
+                  Aucun logo chargé
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <button class="btn btn-outline" style="font-size:12px;padding:8px 14px" onclick="document.getElementById('logo-file-input').click()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Choisir une image
+                  </button>
+                  <button class="btn btn-danger" style="font-size:12px;padding:8px 14px" onclick="removeLogo()">Supprimer le logo</button>
+                </div>
+              </div>
+              <input type="file" id="logo-file-input" accept="image/*" style="display:none" onchange="uploadLogo(event)">
+              <div style="font-size:11px;color:var(--text-light);margin-top:4px">PNG recommandé, fond transparent. Le logo s'affichera dans la barre latérale et dans les documents.</div>
+            </div>
+
+            <!-- FOND D'ÉCRAN -->
+            <div class="field span2">
+              <label>Fond d'écran de l'application</label>
+              <div class="bg-swatches" id="bg-swatches">
+                <div class="bg-swatch" title="Bleu doux" style="background:#e8edf8" onclick="applyBg('#e8edf8',this)"></div>
+                <div class="bg-swatch" title="Blanc" style="background:#f8fafc" onclick="applyBg('#f8fafc',this)"></div>
+                <div class="bg-swatch" title="Gris ardoise" style="background:#f1f5f9" onclick="applyBg('#f1f5f9',this)"></div>
+                <div class="bg-swatch" title="Bleu marine clair" style="background:#dbeafe" onclick="applyBg('#dbeafe',this)"></div>
+                <div class="bg-swatch" title="Vert menthe" style="background:#ecfdf5" onclick="applyBg('#ecfdf5',this)"></div>
+                <div class="bg-swatch" title="Lavande" style="background:#f5f3ff" onclick="applyBg('#f5f3ff',this)"></div>
+                <div class="bg-swatch" title="Pêche" style="background:#fff7ed" onclick="applyBg('#fff7ed',this)"></div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+                <input type="color" id="param-bg-color" value="#e8edf8" style="width:42px;height:36px;border:1.5px solid #c7d9f8;border-radius:6px;padding:2px;cursor:pointer"
+                       onchange="applyBg(this.value,null)">
+                <span style="font-size:12px;color:var(--text-light)">Couleur personnalisée</span>
+              </div>
+              <div style="margin-top:8px">
+                <button class="btn btn-outline" style="font-size:12px;padding:8px 14px" onclick="document.getElementById('bg-img-input').click()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  Image de fond personnalisée
+                </button>
+                <button class="btn btn-outline" style="font-size:12px;padding:8px 14px;margin-left:6px" onclick="applyBg('#e8edf8',null);saveCustomization()">Réinitialiser</button>
+                <input type="file" id="bg-img-input" accept="image/*" style="display:none" onchange="uploadBgImage(event)">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" onclick="saveCustomization()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Sauvegarder la personnalisation
+          </button>
+        </div>
+      </div>
+
+      <!-- Signataires autorisés -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <h2>Signataires autorisés</h2>
+        </div>
+        <div class="card-body">
+          <p style="font-size:12px;color:var(--text-light);margin:0 0 12px">
+            Configurez les personnes habilitées à signer les ordres de virement. Lors de la génération ou de l'impression, il vous sera demandé de sélectionner 2 signataires parmi cette liste — leurs noms et titres apparaîtront dans le bloc de signature.
+          </p>
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+            <label style="font-size:13px;font-weight:600;color:#374151">Nombre de signatures requises :</label>
+            <select id="param_nb_signatures" style="padding:6px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;width:80px">
+              <option value="1">1</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+            </select>
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="background:#f8fafc">
+                <th style="padding:8px 10px;text-align:left;border-bottom:1.5px solid #e2e8f0;font-weight:600;color:#374151;width:42%">Nom complet</th>
+                <th style="padding:8px 10px;text-align:left;border-bottom:1.5px solid #e2e8f0;font-weight:600;color:#374151">Titre / Qualité</th>
+                <th style="padding:8px 10px;border-bottom:1.5px solid #e2e8f0;width:50px"></th>
+              </tr>
+            </thead>
+            <tbody id="signataires-tbody"></tbody>
+          </table>
+          <button class="btn btn-outline" style="margin-top:10px;font-size:12px;padding:7px 14px" onclick="addSigRow()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter un signataire
+          </button>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" onclick="saveParams();showToast('Signataires sauvegardés','success')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Sauvegarder
+          </button>
+        </div>
+      </div>
+
+      <!-- Infos société -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+          <h2>Informations société (fixes)</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="field">
+              <label>Nom de la société</label>
+              <input type="text" id="param_societe" placeholder="ex: SANLAMALLIANZ CI ASSURANCES">
+            </div>
+            <div class="field">
+              <label>Ville</label>
+              <input type="text" id="param_ville" value="ABIDJAN">
+            </div>
+            <div class="field span2">
+              <label>Adresse (en-tête Word/PDF)</label>
+              <input type="text" id="param_adresse" placeholder="ex: Abidjan Plateau, Côte d'Ivoire">
+            </div>
+            <div class="field">
+              <label>Téléphone (en-tête Word/PDF)</label>
+              <input type="text" id="param_telephone" placeholder="ex: +225 27 20 00 00 00">
+            </div>
+            <div class="field">
+              <label>Devise par défaut (Nivellement)</label>
+              <input type="text" id="param_devise_niv" value="XOF">
+            </div>
+            <div class="field">
+              <label>Motif Nivellement</label>
+              <input type="text" id="param_motif_niv" value="ODOD/NIVELLEMENT">
+            </div>
+            <div class="field">
+              <label>Banque Réassurance (fixe)</label>
+              <input type="text" id="param_banque_rea" value="DEUTSCHE BANK AG">
+            </div>
+            <div class="field">
+              <label>Préfixe motif Facture</label>
+              <input type="text" id="param_motif_fac" value="FGFG">
+            </div>
+            <div class="field">
+              <label>Préfixe motif Réassurance</label>
+              <input type="text" id="param_motif_rea" value="PFAC">
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" onclick="saveParams()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Sauvegarder tous les paramètres
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ UTILISATEURS ══════════ -->
+    <div id="panel-utilisateurs" class="panel">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Gestion des utilisateurs</h1>
+          <p>Créer, modifier et gérer les accès</p>
+        </div>
+        <span class="page-header-badge">Administration</span>
+      </div>
+
+      <!-- Tableau utilisateurs -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <h2>Liste des utilisateurs</h2>
+          <span class="badge" id="users-count">0 utilisateur(s)</span>
+        </div>
+        <div class="card-body" style="padding:0">
+          <table class="param-table" id="users-table">
+            <thead>
+              <tr>
+                <th>Nom &amp; Prénom</th>
+                <th>Identifiant</th>
+                <th>Niveau</th>
+                <th>Email</th>
+                <th>Poste / Titre</th>
+                <th>Statut</th>
+                <th>Créé le</th>
+                <th style="width:120px">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Formulaire ajout utilisateur -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          <h2>Ajouter un utilisateur</h2>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="field">
+              <label>Nom <span class="req">*</span></label>
+              <input type="text" id="new_user_nom" placeholder="Nom de famille"
+                     oninput="autoGenUsername()">
+            </div>
+            <div class="field">
+              <label>Prénom <span class="req">*</span></label>
+              <input type="text" id="new_user_prenom" placeholder="Prénom"
+                     oninput="autoGenUsername()">
+            </div>
+            <div class="field">
+              <label>Identifiant (login) <span class="req">*</span></label>
+              <div style="position:relative">
+                <input type="text" id="new_user_username" placeholder="Généré automatiquement" autocomplete="off"
+                       style="width:100%;padding-right:32px"
+                       oninput="checkUsernameAvail()">
+                <button type="button" title="Regénérer depuis le nom/prénom"
+                        onclick="autoGenUsername(true)"
+                        style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;font-size:15px;padding:2px">↺</button>
+              </div>
+              <div id="username-hint" style="font-size:11px;margin-top:3px;height:16px"></div>
+            </div>
+            <div class="field">
+              <label>Mot de passe <span class="req">*</span></label>
+              <input type="password" id="new_user_password" placeholder="Mot de passe" autocomplete="new-password">
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input type="email" id="new_user_email" placeholder="email@societe.ci">
+            </div>
+            <div class="field">
+              <label>Poste / Titre <small style="color:#94a3b8">(apparaît sur les signatures)</small></label>
+              <input type="text" id="new_user_titre" placeholder="ex: Directeur Financier">
+            </div>
+            <div class="field">
+              <label>Niveau d'accès <span class="req">*</span></label>
+              <select id="new_user_niveau">
+                <option value="3">Niveau 3 — Utilisateur</option>
+                <option value="4">Niveau 4 — Superviseur</option>
+                <option value="5">Niveau 5 — Signataire</option>
+                <option value="2">Niveau 2 — Administrateur</option>
+                <option value="1">Niveau 1 — Super Administrateur</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" onclick="saveNewUser()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Créer l'utilisateur
+          </button>
+        </div>
+      </div>
+
+      <!-- Niveaux d'accès (info) -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+          <h2>Niveaux d'habilitation</h2>
+        </div>
+        <div class="card-body">
+          <table class="param-table">
+            <thead><tr><th>Niveau</th><th>Rôle</th><th>Droits</th></tr></thead>
+            <tbody>
+              <tr><td><strong>1</strong></td><td>Super Administrateur</td><td>Tous les droits — gestion complète</td></tr>
+              <tr><td><strong>2</strong></td><td>Administrateur</td><td>Crée comptes (niveaux 3-5), paramètres</td></tr>
+              <tr><td><strong>3</strong></td><td>Utilisateur</td><td>Saisie et soumission des ordres — validation requise avant impression</td></tr>
+              <tr><td><strong>4</strong></td><td>Superviseur</td><td>Saisie, validation des ordres soumis, impression, historique</td></tr>
+              <tr><td><strong>5</strong></td><td>Signataire</td><td>Saisie, impression directe, signature électronique des ordres validés</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ══ OVERLAY LOGIN ══ -->
+<div id="login-overlay" style="display:none">
+  <div class="login-box">
+    <div class="login-logo">
+      <img id="login-logo-img" src="" alt="Logo" style="display:none">
+      <div id="login-logo-text">
+        <div style="font-size:32px;margin-bottom:8px">💳</div>
+        <div style="font-size:17px;font-weight:800;color:#1e3a8a" id="login-company-name">SANLAMALLIANZ CI</div>
+      </div>
+      <div class="login-app-name">Ordres de Virement — Connexion</div>
+    </div>
+    <div class="field" style="margin-bottom:16px">
+      <label style="font-size:13px;font-weight:600;color:#374151">Identifiant</label>
+      <input type="text" id="login-username" placeholder="Votre identifiant" autocomplete="username"
+             style="width:100%;padding:10px 14px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:14px;box-sizing:border-box"
+             onkeydown="if(event.key==='Enter')document.getElementById('login-password').focus()">
+    </div>
+    <div class="field" style="margin-bottom:24px">
+      <label style="font-size:13px;font-weight:600;color:#374151">Mot de passe</label>
+      <input type="password" id="login-password" placeholder="Votre mot de passe" autocomplete="current-password"
+             style="width:100%;padding:10px 14px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:14px;box-sizing:border-box"
+             onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="login-error" style="display:none;color:#dc2626;font-size:13px;margin-bottom:12px;text-align:center;background:#fef2f2;padding:8px;border-radius:6px"></div>
+    <button onclick="doLogin()" style="width:100%;padding:12px;background:#1e3a8a;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:background .2s"
+            onmouseover="this.style.background='#1e40af'" onmouseout="this.style.background='#1e3a8a'">
+      Se connecter
+    </button>
+    <div style="text-align:center;font-size:11px;color:#94a3b8;margin-top:20px">
+      Connexion sécurisée — Usage interne uniquement
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ══ MODAL SÉLECTION SIGNATAIRES ══ -->
+<div id="sig-choose-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:8500;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:14px;padding:28px 32px;width:460px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <h3 style="margin:0 0 5px;font-size:17px;color:#1e3a8a">Sélection des signataires</h3>
+    <p style="font-size:12px;color:#6b7280;margin:0 0 20px">Cet ordre de virement nécessite 2 signatures autorisées. Sélectionnez les 2 signataires ci-dessous.</p>
+    <div style="margin-bottom:14px">
+      <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">Signataire 1</label>
+      <select id="sig-choose-1" style="width:100%;padding:9px 12px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:13px">
+        <option value="">— Sélectionner —</option>
+      </select>
+    </div>
+    <div style="margin-bottom:18px">
+      <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">Signataire 2</label>
+      <select id="sig-choose-2" style="width:100%;padding:9px 12px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:13px">
+        <option value="">— Sélectionner —</option>
+      </select>
+    </div>
+    <div id="sig-choose-error" style="display:none;color:#dc2626;font-size:12px;margin-bottom:12px;background:#fef2f2;padding:8px;border-radius:6px"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="cancelSigChoose()" style="padding:8px 18px;border:1.5px solid #cbd5e1;border-radius:7px;background:#fff;font-size:13px;cursor:pointer;color:#374151">Annuler</button>
+      <button onclick="confirmSigChoose()" style="padding:8px 22px;background:#1e3a8a;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer">Valider &amp; Continuer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL SIGNATURE ÉLECTRONIQUE ══ -->
+<div id="sig-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:14px;padding:28px 32px;width:500px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <h3 style="margin:0 0 6px;font-size:17px;color:#1e3a8a">Ma signature électronique</h3>
+    <p style="font-size:12px;color:#6b7280;margin:0 0 16px">Dessinez votre signature dans le cadre ci-dessous. Elle sera apposée automatiquement sur vos ordres de virement.</p>
+    <canvas id="sig-canvas" width="440" height="180"
+      style="border:2px solid #cbd5e1;border-radius:8px;cursor:crosshair;touch-action:none;background:#f9fafb;display:block;margin:0 auto"></canvas>
+    <div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end">
+      <button onclick="clearSigCanvas()" style="padding:8px 18px;border:1.5px solid #cbd5e1;border-radius:7px;background:#fff;font-size:13px;cursor:pointer;color:#374151">Effacer</button>
+      <button onclick="closeSigModal()" style="padding:8px 18px;border:1.5px solid #cbd5e1;border-radius:7px;background:#fff;font-size:13px;cursor:pointer;color:#374151">Annuler</button>
+      <button onclick="saveSignatureFromModal()" style="padding:8px 22px;background:#1e3a8a;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ══ FIREBASE SDK ══ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<!-- ══ DOCX via CDN ══ -->
+<script src="docx.min.js"></script>
+<script src="OutilDeVirement.js"></script>
+</body>
+</html>
