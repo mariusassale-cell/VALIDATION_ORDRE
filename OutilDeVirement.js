@@ -20,9 +20,14 @@ const FB_PATH = 'sla_virement'; // Chemin racine dans Firebase
 // ══════════════════════════════════════════
 let fbDB = null;
 
+function firebaseConfigured() {
+  return !FB_CONFIG.apiKey.includes('REMPLACER') && FB_CONFIG.databaseURL.startsWith('https://');
+}
+
 function initFirebase() {
+  if (!firebaseConfigured()) { console.info('[Firebase] Config non renseignée — mode local'); return; }
   try {
-    if (typeof firebase === 'undefined') { console.warn('Firebase SDK non chargé'); return; }
+    if (typeof firebase === 'undefined') { console.warn('[Firebase] SDK non chargé'); return; }
     if (!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
     fbDB = firebase.database();
     console.log('[Firebase] Connecté');
@@ -37,7 +42,8 @@ async function syncFromFirebase() {
     ['counters','virement_counters'],
   ];
   try {
-    const snap = await fbDB.ref(FB_PATH).once('value');
+    const timeout = new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 6000));
+    const snap = await Promise.race([fbDB.ref(FB_PATH).once('value'), timeout]);
     const data = snap.val() || {};
     MAP.forEach(([fk, lk]) => { if (data[fk] != null) localStorage.setItem(lk, data[fk]); });
     console.log('[Firebase] Données synchronisées');
@@ -2308,8 +2314,8 @@ function unlockOrder(id) {
 // ══════════════════════════════════════════
 (async function initApp() {
   const loadingEl = document.getElementById('fb-loading');
-  if (loadingEl) loadingEl.style.display = 'flex';
   initFirebase();
+  if (fbDB && loadingEl) loadingEl.style.display = 'flex';
   await syncFromFirebase();
   if (loadingEl) loadingEl.style.display = 'none';
 
