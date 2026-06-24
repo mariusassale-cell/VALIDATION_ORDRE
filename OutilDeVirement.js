@@ -3404,4 +3404,3 @@ function saveQuickAdd() {
   subscribeToOrders();
   subscribeToUsers();
 })();
-Migration Supabase — vraies tables BD multi-colonnes
