@@ -1889,7 +1889,7 @@ function initUsers() {
       id: '1', nom: 'Administrateur', prenom: 'Super',
       username: 'admin', password: hashPwd('admin123'),
       niveau: 1, email: '', actif: true,
-      createdAt: new Date().toLocaleString('fr-FR'),
+      createdAt: new Date().toISOString(),
     }]);
   }
 }
@@ -2172,7 +2172,7 @@ function saveNewUser() {
   const newUser = {
     id: Date.now().toString(), nom, prenom, username: finalUsername,
     password: hashPwd(password), niveau, email, titre, actif: true,
-    createdAt: new Date().toLocaleString('fr-FR'),
+    createdAt: new Date().toISOString(),
   };
   users.push(newUser);
   saveUsers(users);
