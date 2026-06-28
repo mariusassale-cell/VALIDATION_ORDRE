@@ -35,6 +35,9 @@
     <div id="session-bar" class="session-bar" style="display:none">
       <div class="s-name" id="session-nom">—</div>
       <div class="s-level" id="session-niveau">—</div>
+      <button onclick="openChangePwdModal()" title="Changer mon mot de passe" style="margin-top:8px;width:100%;padding:5px 8px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:#fff;font-size:11px;cursor:pointer;text-align:left">
+        🔑 Mot de passe
+      </button>
     </div>
     <div class="sidebar-nav">
       <div class="nav-section">Virements</div>
@@ -1444,6 +1447,98 @@
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
       <button onclick="closeQuickAddModal()" style="padding:8px 18px;border:1.5px solid #cbd5e1;border-radius:7px;background:#fff;font-size:13px;cursor:pointer;color:#374151">Annuler</button>
       <button onclick="saveQuickAdd()" style="padding:8px 22px;background:#1e3a8a;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer">Ajouter &amp; Sauvegarder</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODALE — MODIFIER UTILISATEUR (Admin) ══ -->
+<div id="edit-user-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9400;align-items:center;justify-content:center" onclick="if(event.target===this)closeEditUserModal()">
+  <div style="background:#fff;border-radius:14px;padding:28px 32px;width:min(95vw,520px);box-shadow:0 20px 60px rgba(0,0,0,.3);max-height:90vh;overflow-y:auto">
+    <h3 id="edit-user-title" style="margin:0 0 6px;font-size:17px;color:#1e3a8a;font-weight:700">Modifier l'utilisateur</h3>
+    <p id="edit-user-sub" style="margin:0 0 20px;font-size:12px;color:#64748b"></p>
+    <input type="hidden" id="edit-user-id">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Prénom *</label>
+        <input id="edit-user-prenom" type="text" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;box-sizing:border-box">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Nom *</label>
+        <input id="edit-user-nom" type="text" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;box-sizing:border-box">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Identifiant</label>
+        <input id="edit-user-username" type="text" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;box-sizing:border-box">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Email</label>
+        <input id="edit-user-email" type="email" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;box-sizing:border-box">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Poste / Titre</label>
+        <input id="edit-user-titre" type="text" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;box-sizing:border-box">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Niveau</label>
+        <select id="edit-user-niveau" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;box-sizing:border-box">
+          <option value="1">1 — Super Admin</option>
+          <option value="2">2 — Admin</option>
+          <option value="3">3 — Utilisateur</option>
+          <option value="4">4 — Superviseur</option>
+          <option value="5">5 — Signataire</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:12px;font-weight:600;color:#374151;display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input id="edit-user-actif" type="checkbox" style="width:16px;height:16px;cursor:pointer"> Compte actif
+      </label>
+    </div>
+    <hr style="border:none;border-top:1px solid #e2e8f0;margin:16px 0">
+    <p style="font-size:12px;color:#64748b;margin:0 0 10px">Nouveau mot de passe — laisser vide pour conserver l'actuel</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Nouveau mot de passe</label>
+        <input id="edit-user-pwd" type="password" autocomplete="new-password" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;box-sizing:border-box" placeholder="Laisser vide = inchangé">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Confirmer</label>
+        <input id="edit-user-pwd2" type="password" autocomplete="new-password" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;box-sizing:border-box" placeholder="Confirmer">
+      </div>
+    </div>
+    <div id="edit-user-error" style="display:none;padding:8px 12px;background:#fef2f2;border:1px solid #fca5a5;border-radius:7px;color:#dc2626;font-size:12px;margin-bottom:14px"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeEditUserModal()" style="padding:8px 18px;border:1.5px solid #cbd5e1;border-radius:7px;background:#fff;font-size:13px;cursor:pointer;color:#374151">Annuler</button>
+      <button onclick="saveEditUser()" style="padding:8px 22px;background:#1e3a8a;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODALE — CHANGER MON MOT DE PASSE ══ -->
+<div id="change-pwd-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9400;align-items:center;justify-content:center" onclick="if(event.target===this)closeChangePwdModal()">
+  <div style="background:#fff;border-radius:14px;padding:28px 32px;width:min(95vw,400px);box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <h3 style="margin:0 0 6px;font-size:17px;color:#1e3a8a;font-weight:700">Changer mon mot de passe</h3>
+    <p id="change-pwd-user" style="margin:0 0 20px;font-size:12px;color:#64748b"></p>
+    <div style="margin-bottom:14px">
+      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Mot de passe actuel *</label>
+      <input id="chg-pwd-old" type="password" autocomplete="current-password" style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;box-sizing:border-box">
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Nouveau mot de passe *</label>
+      <input id="chg-pwd-new" type="password" autocomplete="new-password" style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;box-sizing:border-box">
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Confirmer le nouveau mot de passe *</label>
+      <input id="chg-pwd-confirm" type="password" autocomplete="new-password" style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;box-sizing:border-box">
+    </div>
+    <div id="change-pwd-error" style="display:none;padding:8px 12px;background:#fef2f2;border:1px solid #fca5a5;border-radius:7px;color:#dc2626;font-size:12px;margin-bottom:14px"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeChangePwdModal()" style="padding:8px 18px;border:1.5px solid #cbd5e1;border-radius:7px;background:#fff;font-size:13px;cursor:pointer;color:#374151">Annuler</button>
+      <button onclick="saveChangePwd()" style="padding:8px 22px;background:#1e3a8a;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer">Valider</button>
     </div>
   </div>
 </div>
