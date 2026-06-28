@@ -2199,26 +2199,137 @@ function deleteUser(id) {
   showToast('Utilisateur supprime', 'success');
 }
 
-function editUser(id) {
+// ── Modale Modifier Utilisateur (Admin) ──────────────────────────────────────
+function openEditUserModal(id) {
   const users = getUsers();
   const usr = users.find(u => u.id === id);
   if (!usr) return;
-  const pwd = prompt('Nouveau mot de passe (laisser vide pour ne pas changer) :');
-  const actifStr = prompt('Actif ? (oui/non)', usr.actif ? 'oui' : 'non');
-  const niveauStr = prompt(`Niveau (1-5)\n1=Super Admin, 2=Admin, 3=Utilisateur, 4=Superviseur, 5=Signataire`, usr.niveau);
-  const titreStr = prompt('Poste / Titre (apparaît sur les signatures) :', usr.titre || '');
-
-  if (pwd) usr.password = hashPwd(pwd);
-  if (actifStr !== null) usr.actif = actifStr.toLowerCase() === 'oui';
-  if (niveauStr !== null) {
-    const n = parseInt(niveauStr);
-    if (n >= 1 && n <= 5) usr.niveau = n;
+  document.getElementById('edit-user-id').value    = id;
+  document.getElementById('edit-user-title').textContent = 'Modifier — ' + usr.prenom + ' ' + usr.nom;
+  document.getElementById('edit-user-sub').textContent   = 'Identifiant : ' + usr.username;
+  document.getElementById('edit-user-prenom').value  = usr.prenom   || '';
+  document.getElementById('edit-user-nom').value     = usr.nom      || '';
+  document.getElementById('edit-user-username').value= usr.username || '';
+  document.getElementById('edit-user-email').value   = usr.email    || '';
+  document.getElementById('edit-user-titre').value   = usr.titre    || '';
+  document.getElementById('edit-user-niveau').value  = usr.niveau   || 3;
+  document.getElementById('edit-user-actif').checked = !!usr.actif;
+  document.getElementById('edit-user-pwd').value     = '';
+  document.getElementById('edit-user-pwd2').value    = '';
+  const errEl = document.getElementById('edit-user-error');
+  errEl.style.display = 'none'; errEl.textContent = '';
+  // Bloquer la modification du niveau si admin (N2) essaie de modifier un N1/N2
+  const me = getCurrentUser();
+  const niveauSel = document.getElementById('edit-user-niveau');
+  if (me && me.niveau === 2) {
+    // Un admin ne peut pas changer le niveau d'un super admin ou d'un autre admin
+    Array.from(niveauSel.options).forEach(opt => {
+      opt.disabled = parseInt(opt.value) < 3;
+    });
+  } else {
+    Array.from(niveauSel.options).forEach(opt => { opt.disabled = false; });
   }
-  if (titreStr !== null) usr.titre = titreStr.trim();
-  saveUsers(users);
-  renderUsersPanel();
-  showToast('Utilisateur modifie', 'success');
+  document.getElementById('edit-user-modal').style.display = 'flex';
 }
+
+function closeEditUserModal() {
+  document.getElementById('edit-user-modal').style.display = 'none';
+}
+
+function saveEditUser() {
+  const id       = document.getElementById('edit-user-id').value;
+  const prenom   = document.getElementById('edit-user-prenom').value.trim();
+  const nom      = document.getElementById('edit-user-nom').value.trim();
+  const username = document.getElementById('edit-user-username').value.trim();
+  const email    = document.getElementById('edit-user-email').value.trim();
+  const titre    = document.getElementById('edit-user-titre').value.trim();
+  const niveau   = parseInt(document.getElementById('edit-user-niveau').value);
+  const actif    = document.getElementById('edit-user-actif').checked;
+  const pwd      = document.getElementById('edit-user-pwd').value;
+  const pwd2     = document.getElementById('edit-user-pwd2').value;
+
+  const errEl = document.getElementById('edit-user-error');
+  const showErr = msg => { errEl.textContent = msg; errEl.style.display = 'block'; };
+
+  if (!prenom || !nom) { showErr('Le prénom et le nom sont obligatoires.'); return; }
+  if (pwd && pwd !== pwd2) { showErr('Les deux mots de passe ne correspondent pas.'); return; }
+  if (pwd && pwd.length < 4) { showErr('Le mot de passe doit contenir au moins 4 caractères.'); return; }
+
+  const users = getUsers();
+  const idx = users.findIndex(u => u.id === id);
+  if (idx === -1) return;
+
+  // Vérifier que le username n'est pas déjà pris par un autre utilisateur
+  if (username && users.some(u => u.username === username && u.id !== id)) {
+    showErr('Cet identifiant est déjà utilisé par un autre utilisateur.'); return;
+  }
+
+  users[idx].prenom   = prenom;
+  users[idx].nom      = nom;
+  users[idx].username = username || users[idx].username;
+  users[idx].email    = email;
+  users[idx].titre    = titre;
+  users[idx].niveau   = niveau;
+  users[idx].actif    = actif;
+  if (pwd) users[idx].password = hashPwd(pwd);
+
+  saveUsers(users);
+  closeEditUserModal();
+  renderUsersPanel();
+  showToast('Utilisateur mis à jour avec succès', 'success');
+}
+
+// ── Modale Changer mon mot de passe (tout utilisateur) ───────────────────────
+function openChangePwdModal() {
+  const u = getCurrentUser();
+  if (!u) return;
+  const subEl = document.getElementById('change-pwd-user');
+  if (subEl) subEl.textContent = u.prenom + ' ' + u.nom + ' — ' + u.username;
+  document.getElementById('chg-pwd-old').value     = '';
+  document.getElementById('chg-pwd-new').value     = '';
+  document.getElementById('chg-pwd-confirm').value = '';
+  const errEl = document.getElementById('change-pwd-error');
+  errEl.style.display = 'none'; errEl.textContent = '';
+  document.getElementById('change-pwd-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('chg-pwd-old').focus(), 100);
+}
+
+function closeChangePwdModal() {
+  document.getElementById('change-pwd-modal').style.display = 'none';
+}
+
+function saveChangePwd() {
+  const u = getCurrentUser();
+  if (!u) return;
+  const oldPwd  = document.getElementById('chg-pwd-old').value;
+  const newPwd  = document.getElementById('chg-pwd-new').value;
+  const confirm = document.getElementById('chg-pwd-confirm').value;
+
+  const errEl  = document.getElementById('change-pwd-error');
+  const showErr = msg => { errEl.textContent = msg; errEl.style.display = 'block'; };
+
+  if (!oldPwd || !newPwd || !confirm) { showErr('Tous les champs sont obligatoires.'); return; }
+  if (newPwd !== confirm) { showErr('Le nouveau mot de passe et la confirmation ne correspondent pas.'); return; }
+  if (newPwd.length < 4) { showErr('Le nouveau mot de passe doit contenir au moins 4 caractères.'); return; }
+
+  const users = getUsers();
+  const idx = users.findIndex(x => x.id === u.id);
+  if (idx === -1) return;
+
+  if (users[idx].password !== hashPwd(oldPwd)) {
+    showErr('Mot de passe actuel incorrect.'); return;
+  }
+  if (hashPwd(oldPwd) === hashPwd(newPwd)) {
+    showErr('Le nouveau mot de passe doit être différent de l\'ancien.'); return;
+  }
+
+  users[idx].password = hashPwd(newPwd);
+  saveUsers(users);
+  closeChangePwdModal();
+  showToast('Mot de passe modifié avec succès', 'success');
+}
+
+function editUser(id) { openEditUserModal(id); }
 
 function checkAuth() {
   const u = getCurrentUser();
