@@ -1852,20 +1852,23 @@ const NIVEAUX = {
   3: 'Utilisateur',
   4: 'Superviseur',
   5: 'Signataire',
+  6: 'Initiateur',
 };
 
 // Permissions par niveau
 // N1 Super Admin  : tout
-// N2 Admin        : gestion users (N3-N5 seulement), paramètres, virements, historique, impression
-// N3 Utilisateur  : saisie + impression uniquement
-// N4 Superviseur  : saisie + impression + consultation historique
-// N5 Signataire   : saisie + impression (pour signature physique à la banque)
+// N2 Admin        : gestion users (N3-N6 seulement), paramètres, virements, historique, impression
+// N3 Utilisateur  : saisie + soumission au workflow (pas d'impression directe)
+// N4 Superviseur  : validation des ordres + consultation historique
+// N5 Signataire   : signature électronique + impression
+// N6 Initiateur   : saisie + impression directe (pas de workflow, signatures manuelles sur papier)
 const PERMS = {
-  1: { gestionUsers:true,  parametres:true,  virement:true, historique:true,  print:true, inbox:true, soumettre:false },
-  2: { gestionUsers:true,  parametres:true,  virement:true, historique:true,  print:true, inbox:true, soumettre:false },
-  3: { gestionUsers:false, parametres:true,  virement:true, historique:false, print:false, inbox:true, soumettre:true },
-  4: { gestionUsers:false, parametres:true,  virement:false, historique:true,  print:true, inbox:true, soumettre:false },
-  5: { gestionUsers:false, parametres:false, virement:false, historique:false, print:true, inbox:true, soumettre:false },
+  1: { gestionUsers:true,  parametres:true,  virement:true, historique:true,  print:true,  inbox:true,  soumettre:false },
+  2: { gestionUsers:true,  parametres:true,  virement:true, historique:true,  print:true,  inbox:true,  soumettre:false },
+  3: { gestionUsers:false, parametres:true,  virement:true, historique:false, print:false, inbox:true,  soumettre:true  },
+  4: { gestionUsers:false, parametres:true,  virement:false,historique:true,  print:true,  inbox:true,  soumettre:false },
+  5: { gestionUsers:false, parametres:false, virement:false,historique:false, print:true,  inbox:true,  soumettre:false },
+  6: { gestionUsers:false, parametres:false, virement:true, historique:true,  print:true,  inbox:false, soumettre:false },
 };
 
 function getUsers() {
@@ -1982,7 +1985,7 @@ function applyPermissions() {
   show('nav-utilisateurs',    perm.gestionUsers);
   show('nav-parametres',      perm.parametres);
   show('nav-historique',      perm.historique);
-  show('nav-signature',       !!(u && u.niveau === 5));
+  show('nav-signature',       !!(u && (u.niveau === 5)));
   show('nav-inbox',           !!perm.inbox);
 
   // Onglets de saisie — masqués pour superviseur (N4) et signataire (N5)
@@ -2009,7 +2012,7 @@ function applyPermissions() {
 
   // Zones d'ajout de pièces jointes — masquées pour N4/N5 (examen uniquement, pas d'ajout)
   // Seuls N1, N2, N3 peuvent ajouter des documents
-  const canAddPJ = u.niveau <= 3;
+  const canAddPJ = u.niveau <= 3 || u.niveau === 6;
   ['facture','bancassurance','nivellement','reassurance','sinistre'].forEach(type => {
     const zone = document.getElementById('upload-zone-' + type);
     if (zone) zone.style.display = canAddPJ ? '' : 'none';
